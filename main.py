@@ -133,6 +133,7 @@ def play():
                 if event.key == pygame.K_RIGHT: snail.vector(RIGHT)
                 if event.key == pygame.K_UP: snail.vector(UP)
                 if event.key == pygame.K_DOWN: snail.vector(DOWN)
+                if event.key == pygame.K_q: return
 
         if snail.head().x == food.x and snail.head().y == food.y:
             snail.length += 1
