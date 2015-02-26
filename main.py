@@ -5,7 +5,7 @@ import collections
 
 pygame.init()
 
-FPS = 15
+FPS = 10
 
 WINDOW_HEIGHT = 600
 WINDOW_WIDTH = 800
@@ -43,7 +43,6 @@ class Snail:
         self.vector(vector)
         self.length = 1
 
-
     def vector(self, vector):
 
         if self.vectr == UP and vector == DOWN: return
@@ -65,6 +64,16 @@ class Snail:
         elif vector == LEFT:
             self.move_x = -BOX_HEIGHT
             self.move_y = 0
+    
+    def checkCollision(self):
+        x = self.head().x
+        y = self.head().y
+
+        for tx, ty in self.body[0:-1]:
+            if x == tx and y == ty:
+                return True
+
+        return False
 
     def head(self):
         return self.body[-1]
@@ -138,6 +147,16 @@ def play():
         if snail.head().x == food.x and snail.head().y == food.y:
             snail.length += 1
             food.regenerate()
+
+        if not in_map(snail.head().x, snail.head().y):
+            print_message("You are out of map", RED)
+            time.sleep(1)
+            return
+
+        if snail.checkCollision():
+            print_message("You are crossing your self", RED)
+            time.sleep(1)
+            return
 
         gameDisplay.fill(WHITE)
         snail.draw()
