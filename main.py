@@ -1,10 +1,11 @@
 import pygame
 import time
 import random
+import collections
 
 pygame.init()
 
-FPS = 30
+FPS = 15
 
 WINDOW_HEIGHT = 600
 WINDOW_WIDTH = 800
@@ -20,6 +21,11 @@ BLACK = (  0,   0,   0)
 RED   = (255,   0,   0)
 GREEN = (  0, 255,   0)
 
+UP = 0
+RIGHT = 1
+DOWN = 2
+LEFT = 3
+
 FONT = pygame.font.SysFont(None, 25)
 
 pygame.display.set_caption('Slither')
@@ -28,66 +34,118 @@ clock = pygame.time.Clock()
 
 gameDisplay = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 
-def print_message(msg, color):
+Point = collections.namedtuple('Point', ['x', 'y'])
+
+class Snail:
+    def __init__(self, point, vector = RIGHT):
+        self.body = [point]
+        self.vectr = vector
+        self.vector(vector)
+        self.length = 1
+
+
+    def vector(self, vector):
+
+        if self.vectr == UP and vector == DOWN: return
+        if self.vectr == DOWN and vector == UP: return
+        if self.vectr == RIGHT and vector == LEFT: return
+        if self.vectr == LEFT and vector == RIGHT: return
+
+        self.vectr = vector
+
+        if vector == UP:
+            self.move_x = 0
+            self.move_y = -BOX_WIDTH
+        elif vector == RIGHT:
+            self.move_x = BOX_HEIGHT
+            self.move_y = 0
+        elif vector == DOWN:
+            self.move_x = 0
+            self.move_y = BOX_WIDTH
+        elif vector == LEFT:
+            self.move_x = -BOX_HEIGHT
+            self.move_y = 0
+
+    def head(self):
+        return self.body[-1]
+            
+    def draw(self):
+        self.body.append(Point(
+            self.head().x + self.move_x, 
+            self.head().y + self.move_y
+        ))
+
+        if len(self.body) > self.length:
+            self.body.pop(0)
+
+        for x, y in self.body:
+            pygame.draw.rect(
+                gameDisplay, 
+                BLACK,
+                [x, y, BOX_HEIGHT, BOX_WIDTH]
+            )
+
+class Food():
+    def __init__(self):
+        self.regenerate()
+
+    def regenerate(self):
+        self.x = random.randrange(0, WINDOW_XBOX_CORNER/BOX_HEIGHT) * BOX_HEIGHT
+        self.y = random.randrange(0, WINDOW_YBOX_CORNER/BOX_WIDTH) * BOX_WIDTH
+    
+    def draw(self):
+        pygame.draw.rect(gameDisplay, RED, [self.x, self.y, BOX_HEIGHT, BOX_WIDTH])
+
+def in_map(x, y):
+    if x > 0 and x < WINDOW_XBOX_CORNER and y > 0 and y < WINDOW_YBOX_CORNER:
+        return True
+    return False
+        
+
+def print_message(msg, color = BLACK, background = WHITE):
+    gameDisplay.fill(background)
     screen_text = FONT.render(msg, True, color)
     gameDisplay.blit(screen_text, [WINDOW_WIDTH/2, WINDOW_HEIGHT/2])
     pygame.display.update()
 
+def menu():
+    print_message("S - to start game, Q - to quit")
+
+    while True:
+
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q: return
+                if event.key == pygame.K_s:
+                    play()
+                    print_message("S - to start game, Q - to quit")
+
 def play():
 
-    box_x = WINDOW_WIDTH/2
-    box_y = WINDOW_HEIGHT/2
-    box_move_x = 0
-    box_move_y = 0
-    foot_x = random.randrange(0, WINDOW_XBOX_CORNER/BOX_HEIGHT) * BOX_HEIGHT
-    foot_y = random.randrange(0, WINDOW_YBOX_CORNER/BOX_WIDTH) * BOX_WIDTH
+    snail = Snail(Point(WINDOW_WIDTH/2, WINDOW_WIDTH/2))
+    food = Food()
 
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT: return
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    box_move_x = -BOX_WIDTH
-                    box_move_y = 0
-                if event.key == pygame.K_RIGHT:
-                    box_move_x = BOX_WIDTH
-                    box_move_y = 0
-                if event.key == pygame.K_UP:
-                    box_move_y = -BOX_HEIGHT
-                    box_move_x = 0
-                if event.key == pygame.K_DOWN:
-                    box_move_y = BOX_HEIGHT
-                    box_move_x = 0
-            elif event.type == pygame.KEYUP:
-                if event.key in [pygame.K_LEFT, pygame.K_RIGHT]:
-                    box_move_x = 0
-                elif event.key in [pygame.K_UP, pygame.K_DOWN]:
-                    box_move_y = 0
-    
-        box_x += box_move_x
-        box_y += box_move_y
-    
-        if not box_x in range(0, WINDOW_XBOX_CORNER): 
-            print_message("You lose", RED)
-            time.sleep(1)
-            return
-        if not box_y in range(0, WINDOW_YBOX_CORNER):
-            print_message("You lose", RED)
-            time.sleep(1)
-            return
+                if event.key == pygame.K_LEFT: snail.vector(LEFT)
+                if event.key == pygame.K_RIGHT: snail.vector(RIGHT)
+                if event.key == pygame.K_UP: snail.vector(UP)
+                if event.key == pygame.K_DOWN: snail.vector(DOWN)
 
-        if box_x == foot_x and box_y == foot_y:
-            foot_x = random.randrange(0, WINDOW_XBOX_CORNER/BOX_HEIGHT) * BOX_HEIGHT
-            foot_y = random.randrange(0, WINDOW_YBOX_CORNER/BOX_WIDTH) * BOX_WIDTH
+        if snail.head().x == food.x and snail.head().y == food.y:
+            snail.length += 1
+            food.regenerate()
 
         gameDisplay.fill(WHITE)
-        pygame.draw.rect(gameDisplay, RED, [foot_x, foot_y, BOX_HEIGHT, BOX_WIDTH])
-        pygame.draw.rect(gameDisplay, GREEN, [box_x, box_y, BOX_HEIGHT, BOX_WIDTH])
+        snail.draw()
+        food.draw()
         pygame.display.update()
     
         clock.tick(FPS)
 
-play()
+def quit():
+    pygame.quit()
 
-pygame.quit()
-quit()
+menu()
