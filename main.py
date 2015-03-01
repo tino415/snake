@@ -36,7 +36,7 @@ gameDisplay = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 
 Point = collections.namedtuple('Point', ['x', 'y'])
 
-class Snail:
+class Snake:
     def __init__(self, point, vector = RIGHT):
         self.body = [point]
         self.vectr = vector
@@ -131,35 +131,35 @@ def menu():
 
 def play():
 
-    snail = Snail(Point(WINDOW_WIDTH/2, WINDOW_WIDTH/2))
+    snake = Snake(Point(WINDOW_WIDTH/2, WINDOW_WIDTH/2))
     food = Food()
 
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT: return
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT: snail.vector(LEFT)
-                if event.key == pygame.K_RIGHT: snail.vector(RIGHT)
-                if event.key == pygame.K_UP: snail.vector(UP)
-                if event.key == pygame.K_DOWN: snail.vector(DOWN)
+                if event.key == pygame.K_LEFT: snake.vector(LEFT)
+                if event.key == pygame.K_RIGHT: snake.vector(RIGHT)
+                if event.key == pygame.K_UP: snake.vector(UP)
+                if event.key == pygame.K_DOWN: snake.vector(DOWN)
                 if event.key == pygame.K_q: return
 
-        if snail.head().x == food.x and snail.head().y == food.y:
-            snail.length += 1
+        if snake.head().x == food.x and snake.head().y == food.y:
+            snake.length += 1
             food.regenerate()
 
-        if not in_map(snail.head().x, snail.head().y):
+        if not in_map(snake.head().x, snake.head().y):
             print_message("You are out of map", RED)
             time.sleep(1)
             return
 
-        if snail.checkCollision():
+        if snake.checkCollision():
             print_message("You are crossing your self", RED)
             time.sleep(1)
             return
 
         gameDisplay.fill(WHITE)
-        snail.draw()
+        snake.draw()
         food.draw()
         pygame.display.update()
     
