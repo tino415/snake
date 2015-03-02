@@ -11,11 +11,9 @@
 
     $.fn.snakeGame = function(options) {
 
-        act_size = options.actor_size || 20;
         var settings = {
             FPS : 15,
-            actor_size : act_size,
-            move_len : act_size,
+            actor_size : 20,
             snake_color : '#FFFFFF',
             snake_start_x : 0,
             snake_start_y : 0,
@@ -39,8 +37,14 @@
             'position' : 'relative',
         })
 
+        function out(x, y) {
+            if(x < 0 || x > scene_hmax
+                || y < 0 || y > scene_wmax) return true;
+            return false;
+        }
+
         function rand(dimension) {
-            len = settings.move_len;
+            len = settings.actor_size;
             return Math.round(Math.random() * dimension/len) * len;
         }
 
@@ -72,9 +76,11 @@
             element = Element();
             element.css('background', settings.food_color);
             element.extend(element,{
-                regenerate : function() {
-                    this.x = rand(scene_hmax);
-                    this.y = rand(scene_wmax);
+                regenerate : function(snake) {
+                    do {
+                        this.x = rand(scene_hmax);
+                        this.y = rand(scene_wmax);
+                    } while(snake.colide(this.x, this.y));
                     this.update()
                 }
             })
@@ -98,10 +104,10 @@
                 vector : RIGHT,
                 move : function() {
                     switch(this.vector) {
-                        case UP: this.x -= settings.move_len; break;
-                        case RIGHT: this.y += settings.move_len; break;
-                        case DOWN: this.x += settings.move_len; break;
-                        case LEFT: this.y -= settings.move_len; break;
+                        case UP: this.x -= settings.actor_size; break;
+                        case RIGHT: this.y += settings.actor_size; break;
+                        case DOWN: this.x += settings.actor_size; break;
+                        case LEFT: this.y -= settings.actor_size; break;
                     }
                     console.log(this.colide(this.x, this.y));
                     if(this.colide(this.x, this.y)) {
@@ -126,12 +132,13 @@
         }
 
         this.append(snake = Snake(this), food = Food());
-        food.regenerate()
+        food.regenerate(snake)
         gameLoop = setInterval(function(){
-            if(!snake.move()) clearInterval(gameLoop);
+            if(!snake.move() || out(snake.x, snake.y))
+                clearInterval(gameLoop);
             if(snake.x == food.x && snake.y == food.y) {
                 snake.len += settings.snake_grow;
-                food.regenerate();
+                food.regenerate(snake);
             }
         }, (1/settings.FPS)*1000);
 
