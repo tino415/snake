@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <script src="main.js"></script>
     <link rel="stylesheet" href="style.css" media="all">
     <title></title>
@@ -14,9 +14,13 @@
     </div>
 </body>
 <script>
-    $('.canvas').snakeGame({
+    test = $('.canvas').snakeGame({
         FPS : 20,
-        snake : {len : 10},
+        snake_len : 2,
+        scene_height : 256,
+        scene_width : 512,
     })
+    test.play().focus();
+    test.focus();
 </script>
 </html>
